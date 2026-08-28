@@ -1,0 +1,416 @@
+\documentclass[12pt,a4paper]{report}
+
+% ===================== PACKAGES =====================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{amsmath}
+
+\definecolor{agrigreen}{RGB}{27,94,63}
+\definecolor{agrilight}{RGB}{230,240,230}
+\definecolor{codegray}{RGB}{245,245,245}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=agrigreen,
+    urlcolor=agrigreen,
+    citecolor=agrigreen,
+    pdftitle={Conception et réalisation d'une plateforme web et mobile de conseil agricole intelligent},
+    pdfauthor={}
+}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{agrigreen}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries\color{agrigreen}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small AgriSmart -- Conseil agricole intelligent}
+\fancyhead[R]{\small \leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!40},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{agrigreen}\bfseries,
+    stringstyle=\color{purple}
+}
+
+\setlist[itemize]{leftmargin=*}
+
+% ===================== DOCUMENT =====================
+\begin{document}
+
+% ---------- PAGE DE GARDE ----------
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\Large \textsc{Mémoire de fin d'études}}\\[0.3cm]
+{\large Filière Génie Logiciel}\\[2cm]
+
+\rule{\linewidth}{0.5mm}\\[0.6cm]
+{\huge \bfseries Conception et réalisation d'une plateforme web et mobile de conseil agricole intelligent pour les zones rurales}\\[0.4cm]
+\rule{\linewidth}{0.5mm}\\[1.5cm]
+
+{\Large \textbf{AgriSmart}}\\[0.3cm]
+{\normalsize Application web (React) et mobile (React Native / Expo) --- API REST Node.js / MySQL}\\[2.5cm]
+
+\begin{flushleft}
+\large
+\textbf{Présenté par :} \underline{\hspace{6cm}}\\[0.4cm]
+\textbf{Encadré par :} \underline{\hspace{6cm}}\\
+\end{flushleft}
+
+\vfill
+{\large Année universitaire \underline{\hspace{4cm}}}
+\end{titlepage}
+
+\tableofcontents
+\listoftables
+\clearpage
+
+% =====================================================
+\chapter{Introduction générale}
+% =====================================================
+
+\section{Contexte}
+
+Madagascar est un pays à vocation majoritairement agricole : une large part de la population active rurale dépend directement de la production de riz, de maïs et de manioc pour sa subsistance et ses revenus. Cette agriculture, souvent familiale et peu mécanisée, reste fortement exposée aux aléas climatiques (sécheresses, épisodes de gel en altitude, pluies irrégulières), aux maladies et ravageurs des cultures, ainsi qu'à une forte volatilité des prix sur les marchés locaux. Les producteurs disposent rarement d'un accès simple et centralisé à une information agronomique fiable, à des prévisions météorologiques exploitables, ou à un canal de communication direct avec des experts agricoles.
+
+Le développement du taux d'équipement en téléphones mobiles, y compris en zone rurale, ouvre néanmoins une opportunité concrète : celle de mettre à disposition des agriculteurs un outil numérique --- consultable en ligne comme hors connexion --- capable de centraliser conseils agronomiques, suivi météorologique, gestion des exploitations et mise en relation avec des experts et d'autres producteurs.
+
+\section{Problématique}
+
+Comment concevoir une plateforme numérique, accessible à la fois sur le web et sur mobile, qui permette :
+\begin{itemize}
+    \item à un \textbf{agriculteur} de gérer ses exploitations et parcelles, de recevoir des conseils personnalisés et des alertes climatiques ciblées, de dialoguer avec des experts, et de consulter les prix du marché ;
+    \item à un \textbf{expert agricole} de superviser plusieurs exploitants dans sa zone de couverture, de valider des diagnostics, de publier des conseils et de déclencher des alertes régionales ;
+    \item à un \textbf{administrateur} de gérer les comptes, valider les experts, et suivre l'activité globale de la plateforme ;
+\end{itemize}
+tout en restant utilisable dans un contexte de connectivité intermittente, typique des zones rurales malgaches ?
+
+\section{Objectifs du projet}
+
+L'objectif général est de concevoir et réaliser \textbf{AgriSmart}, une plateforme de conseil agricole intelligent composée d'une application web, d'une application mobile et d'une API REST partagée. Les objectifs spécifiques sont :
+
+\begin{enumerate}
+    \item Mettre en place une authentification sécurisée avec gestion fine des rôles (administrateur, agriculteur, expert agricole) et des profils enrichis propres à chaque rôle.
+    \item Permettre la gestion complète des exploitations agricoles : parcelles, cultures, géolocalisation, suivi des tâches culturales.
+    \item Fournir des conseils agricoles intelligents, y compris un module de diagnostic de maladies par symptômes, validé par des experts humains.
+    \item Intégrer un suivi météorologique avancé (conditions en temps réel, prévisions, indicateurs agronomiques dérivés : évapotranspiration, risques de gel et de sécheresse).
+    \item Offrir des canaux de communication agriculteurs-experts : messagerie, forum communautaire.
+    \item Proposer un module de marché agricole : consultation et historique des prix, signalement des abus, offres de vente directes entre producteurs et acheteurs.
+    \item Permettre la visualisation géographique des exploitations et alertes régionales.
+    \item Fournir des tableaux de bord analytiques adaptés à chaque rôle.
+    \item Garantir un fonctionnement dégradé mais utilisable en l'absence de connexion réseau (mode hors-ligne).
+\end{enumerate}
+
+\section{Organisation du document}
+
+Ce document présente d'abord le cahier des charges et l'analyse des besoins (chapitre \ref{chap:cdc}), puis l'architecture technique retenue (chapitre \ref{chap:archi}), la modélisation des données (chapitre \ref{chap:conception}), le détail de la réalisation module par module (chapitre \ref{chap:realisation}), les aspects de sécurité (chapitre \ref{chap:securite}), la démarche de conception de l'interface utilisateur (chapitre \ref{chap:ui}), la stratégie de vérification (chapitre \ref{chap:tests}), les difficultés rencontrées (chapitre \ref{chap:difficultes}) et enfin les perspectives d'évolution (chapitre \ref{chap:perspectives}).
+
+% =====================================================
+\chapter{Cahier des charges et analyse des besoins}
+\label{chap:cdc}
+% =====================================================
+
+\section{Acteurs du système}
+
+Le système repose sur une gestion stricte des rôles (RBAC), avec exactement trois profils utilisateurs :
+
+\begin{longtable}{p{3.2cm}p{11cm}}
+\toprule
+\textbf{Acteur} & \textbf{Responsabilités principales} \\
+\midrule
+\endhead
+Agriculteur & Gère ses exploitations et parcelles, enregistre ses cultures, consulte la météo et les conseils, reçoit des alertes régionales, communique avec les experts (messagerie, forum), consulte les prix du marché et peut publier des offres de vente. \\
+Expert agricole & Couvre une zone géographique définie, publie des conseils, valide les diagnostics automatiques soumis par les agriculteurs, répond aux questions du forum, déclenche des alertes régionales ciblées, dispose d'un profil validé par un administrateur (diplôme, statut en\_attente/valide/rejete). \\
+Administrateur & Gère les comptes utilisateurs, valide ou rejette les inscriptions d'experts, supervise les signalements (abus de prix), consulte les statistiques globales de la plateforme. \\
+\bottomrule
+\end{longtable}
+
+\section{Exigences fonctionnelles}
+
+L'analyse du besoin, formalisée sous la forme d'un cahier des charges détaillé, a permis d'identifier sept modules fonctionnels majeurs, complétés par un module transversal :
+
+\begin{longtable}{p{1cm}p{4.5cm}p{9cm}}
+\toprule
+\textbf{N°} & \textbf{Module} & \textbf{Description} \\
+\midrule
+\endhead
+1 & Authentification \& profils & Inscription, connexion, récupération de mot de passe, gestion de profils enrichis par rôle (région/district/commune pour l'agriculteur, zone de couverture et diplôme pour l'expert), validation administrative des experts. \\
+2 & Tableaux de bord par rôle & Indicateurs et widgets adaptés à chaque rôle : alertes régionales, prochaines actions culturales, taux de résolution des experts, statistiques globales. \\
+3 & Exploitations \& géolocalisation & Création d'exploitations et de parcelles géolocalisées, gestion des cultures (variété, type de sol), suivi de tâches culturales automatiques, cartographie multi-parcelles. \\
+4 & Conseils agricoles intelligents \& forum & Diagnostic de maladies par symptômes avec score de confiance, validation experte, forum enrichi (badge \og expert vérifié \fg{}, système de likes). \\
+5 & Suivi météorologique avancé & Conditions en temps réel, prévisions à 5 jours, pluviométrie, alertes climatiques régionales, évapotranspiration (ET0), estimation de la température du sol, indices de risque de gel et de sécheresse. \\
+6 & Marché agricole (B2B) & Consultation et historique des prix par marché de référence, signalement des prix abusifs, offres de vente directes entre producteurs, contact téléphonique/SMS. \\
+7 & Communication \& géolocalisation transverse & Messagerie privée, forum, visualisation cartographique des exploitations et des alertes. \\
+0 & Mode hors-ligne (transversal) & Mise en cache locale des dernières données consultées, file d'actions en attente synchronisée automatiquement au retour de la connexion. \\
+\bottomrule
+\end{longtable}
+
+\section{Exigences non fonctionnelles}
+
+\begin{itemize}
+    \item \textbf{Sécurité} : authentification par jeton JWT, mots de passe hachés (bcrypt), contrôle d'accès par rôle sur chaque route de l'API.
+    \item \textbf{Disponibilité en connectivité limitée} : mise en cache et file de synchronisation différée, adaptée au contexte rural malgache où la connexion réseau est intermittente.
+    \item \textbf{Multiplateforme} : une seule API REST consommée à la fois par le client web et par l'application mobile, afin d'éviter la duplication de la logique métier.
+    \item \textbf{Internationalisation} : interface web disponible en français, anglais et malgache.
+    \item \textbf{Honnêteté des données} : toute donnée dérivée ou estimée (température du sol, évapotranspiration, prévisions météo) est explicitement signalée comme telle à l'utilisateur plutôt que présentée comme une mesure exacte.
+\end{itemize}
+
+% =====================================================
+\chapter{Architecture et choix technologiques}
+\label{chap:archi}
+% =====================================================
+
+\section{Vue d'ensemble de l'architecture}
+
+AgriSmart adopte une architecture en trois blocs autour d'une API REST centrale :
+
+\begin{itemize}
+    \item un \textbf{back-end} Node.js/Express exposant une API REST unique, connectée à une base de données relationnelle MySQL ;
+    \item un \textbf{client web} en React (Create React App), destiné aux trois rôles, avec une attention particulière portée à l'expérience agriculteur/expert au quotidien ;
+    \item un \textbf{client mobile} en React Native (Expo, expo-router), pensé pour un usage terrain, hors connexion, avec géolocalisation native.
+\end{itemize}
+
+Ce choix évite toute duplication de la logique métier (calculs météo, scoring de diagnostic, règles de recommandation) qui reste centralisée côté serveur ; le web et le mobile ne sont que des consommateurs de la même API.
+
+\section{Stack technique retenue}
+
+\begin{longtable}{p{3.5cm}p{10.5cm}}
+\toprule
+\textbf{Composant} & \textbf{Technologies} \\
+\midrule
+\endhead
+Back-end / API & Node.js, Express 4, MySQL (pilote \texttt{mysql2}), authentification \texttt{jsonwebtoken}, hachage \texttt{bcryptjs}, upload de fichiers \texttt{multer} (diplômes d'experts), envoi d'e-mails \texttt{nodemailer}, appels API externes via \texttt{axios}. \\
+Client web & React 19, React Router 7, Tailwind CSS (mode sombre), \texttt{i18next}/\texttt{react-i18next} (fr/en/mg), \texttt{recharts} (graphiques), \texttt{leaflet}/\texttt{react-leaflet} (cartographie), \texttt{framer-motion} (animations), \texttt{jspdf} (export). \\
+Client mobile & React Native 0.81 sur Expo SDK~54, \texttt{expo-router} pour la navigation par fichiers, \texttt{expo-location} (géolocalisation native), \texttt{react-native-chart-kit} (graphiques), \texttt{@react-native-async-storage/async-storage} (cache local), \texttt{@react-native-community/netinfo} (détection de connectivité). \\
+Base de données & MySQL, schéma relationnel (\texttt{backend/schema.sql}), migrations incrémentales versionnées sous forme de scripts Node (\texttt{backend/scripts/migrate-*.js}). \\
+API externe & OpenWeatherMap (conditions courantes et prévisions à 5 jours, offre gratuite). \\
+\bottomrule
+\end{longtable}
+
+\section{Convention API et couche service}
+
+L'API REST suit une convention homogène :
+\begin{itemize}
+    \item chaque réponse est encapsulée par un utilitaire commun (\texttt{success(res, data, message, status)} / \texttt{error(res, message, status)}), garantissant un format de réponse prévisible côté client ;
+    \item les modèles encapsulent les requêtes SQL (\texttt{db.execute()}) et utilisent un motif \texttt{COALESCE(?, colonne\_existante)} pour permettre des mises à jour partielles sans écraser les champs non fournis ;
+    \item côté mobile, une couche de service unique (\texttt{apiClient.ts} : \texttt{apiGet}/\texttt{apiPost}/\texttt{apiPut}/\texttt{apiDelete}/\texttt{apiUpload}) est déclinée en un fichier \texttt{*Service.ts} par domaine métier (météo, marché, conseils, forum, exploitations...), évitant la duplication d'appels réseau ad hoc dans les écrans.
+\end{itemize}
+
+Les migrations de schéma suivent également un motif reproductible : création de table protégée par \texttt{CREATE TABLE IF NOT EXISTS}, ajout de colonne protégé par une vérification \texttt{INFORMATION\_SCHEMA.COLUMNS}, ce qui rend chaque script rejouable sans erreur sur une base déjà à jour.
+
+% =====================================================
+\chapter{Modélisation et conception}
+\label{chap:conception}
+% =====================================================
+
+\section{Modèle de données}
+
+Le schéma relationnel s'organise autour des entités suivantes (liste non exhaustive, les tables évoluant par migrations successives) :
+
+\begin{itemize}
+    \item \textbf{utilisateurs} : identité, rôle, identifiants d'authentification ;
+    \item \textbf{agriculteurs} / \textbf{experts} : profils spécialisés liés à \texttt{utilisateurs} (région/district/commune pour l'agriculteur ; zone de couverture, diplôme, statut de validation pour l'expert) ;
+    \item \textbf{exploitations}, \textbf{parcelles}, \textbf{cultures} : hiérarchie exploitation~$\rightarrow$~parcelles~$\rightarrow$~cultures, chaque parcelle pouvant être géolocalisée (table \texttt{localisations}) ;
+    \item \textbf{taches\_culturales} : tâches générées automatiquement à la création d'une culture (repiquage, sarclage, fertilisation, récolte), avec échéance en jours et statut d'achèvement ;
+    \item \textbf{conseils\_agricoles} : conseils générés automatiquement (règles météo) ou issus d'un diagnostic, avec un champ de validation experte tri-état (non applicable / en attente / validé / invalidé) ;
+    \item \textbf{alertes} : alertes climatiques, avec ciblage par région (\texttt{alerte\_region}) ;
+    \item \textbf{marches}, \textbf{produits\_agricoles}, \textbf{signalements\_prix}, \textbf{offres\_vente} : consultation de prix, historique, signalement d'abus, offres de vente directes ;
+    \item \textbf{forum\_sujets}, \textbf{forum\_reponses}, \textbf{forum\_likes} : forum communautaire avec système de likes polymorphique (une même table de likes référence indifféremment un sujet ou une réponse via un couple \texttt{cible\_type}/\texttt{cible\_id}).
+\end{itemize}
+
+\section{Contrôle d'accès}
+
+Chaque route de l'API applique un middleware d'autorisation par rôle (par exemple \texttt{autoriser('administrateur')} pour les routes réservées à l'administration). Les vérifications de propriété des ressources (une parcelle appartient-elle bien à l'utilisateur qui la modifie ? une offre de vente appartient-elle à celui qui la marque comme vendue ?) sont systématiquement effectuées côté serveur, jamais déléguées au client.
+
+\section{Approche de conception incrémentale}
+
+Le projet a été découpé en sept phases fonctionnelles cohérentes, chacune traitée de bout en bout (base de données~$\rightarrow$~API~$\rightarrow$~web~$\rightarrow$~mobile) avant de passer à la suivante, plutôt que développées en silos par couche technique. Cette approche a permis de valider chaque module dans son intégralité (y compris ses écrans) avant d'entamer le suivant, réduisant le risque d'incohérences tardives entre client et serveur.
+
+% =====================================================
+\chapter{Réalisation}
+\label{chap:realisation}
+% =====================================================
+
+Ce chapitre détaille la réalisation effective de chacun des modules du cahier des charges.
+
+\section{Authentification et profils enrichis}
+
+Le module d'authentification s'appuie sur un jeton JWT délivré à la connexion et vérifié à chaque requête protégée. L'inscription distingue trois formulaires selon le rôle choisi. Le numéro de téléphone est validé selon le format malgache (\texttt{+261} ou \texttt{0}, suivi d'un préfixe opérateur \texttt{32}/\texttt{33}/\texttt{34}/\texttt{38}), aussi bien côté back-end que sur les deux clients.
+
+Le profil agriculteur porte une localisation administrative (région, district, commune), utilisée ensuite pour le ciblage des alertes régionales. Le profil expert porte une zone de couverture, un diplôme (téléversé), et un statut de validation (\emph{en attente}, \emph{validé}, \emph{rejeté}) arbitré par un administrateur via une interface dédiée, tant sur le web que sur mobile.
+
+\section{Tableaux de bord par rôle}
+
+Chaque rôle dispose d'un tableau de bord distinct :
+\begin{itemize}
+    \item \textbf{Agriculteur} : bannière d'alerte régionale active (colorée selon la gravité), carte des \og prochaines actions \fg{} déduites du stade de chaque culture en cours ;
+    \item \textbf{Expert} : formulaire de déclenchement d'alerte régionale ciblée, indicateur de taux de résolution des demandes traitées ;
+    \item \textbf{Administrateur} : statistiques agrégées de la plateforme, panneau de traitement des signalements de prix abusifs.
+\end{itemize}
+
+La pluviométrie réelle est désormais extraite des champs \texttt{rain.1h}/\texttt{rain.3h} renvoyés par l'API météo, plutôt que d'être approximée.
+
+\section{Exploitations et géolocalisation}
+
+Un agriculteur crée une ou plusieurs exploitations, elles-mêmes subdivisées en parcelles, chacune pouvant porter plusieurs cultures. Chaque culture peut désormais préciser sa variété et le type de sol. À la création d'une culture, quatre tâches culturales standard sont générées automatiquement à échéance relative (J+30 repiquage, J+60 premier sarclage, J+90 fertilisation, J+120 récolte), affichées sous forme de liste à cocher.
+
+Les parcelles peuvent être géolocalisées via un bouton \og utiliser ma position actuelle \fg{} (web comme mobile), et une vue cartographique affiche désormais l'exploitation \emph{et} l'ensemble de ses parcelles simultanément, chaque marqueur étant dimensionné proportionnellement à la superficie déclarée.
+
+\section{Conseils agricoles intelligents et forum}
+
+Un module de \og diagnostic rapide \fg{} permet à l'agriculteur de sélectionner une culture (riz, maïs, manioc) et de cocher les symptômes observés. Une base de connaissances statique (couvrant notamment la pyriculariose et le charançon du riz, le mildiou du maïs, la mosaïque du manioc) associe à chaque combinaison de symptômes une maladie probable, un score de confiance calculé par recouvrement symptomatique (plafonné à 95\,\% afin de ne jamais afficher une certitude absolue) et un traitement biologique suggéré. Le diagnostic est ensuite soumis à validation par un expert couvrant la région du demandeur, qui peut le valider ou l'infirmer.
+
+Le forum a été enrichi d'un badge \og expert vérifié \fg{} affiché sur les contributions des experts, ainsi que d'un système de likes applicable aussi bien aux sujets qu'aux réponses.
+
+\section{Suivi météorologique avancé}
+
+Au-delà des conditions courantes, le module météo calcule plusieurs indicateurs agronomiques dérivés :
+\begin{itemize}
+    \item l'\textbf{évapotranspiration de référence (ET0)}, selon la formule de Hargreaves-Samani :
+    \[
+    ET0 = 0{,}0023 \times (T_{moy} + 17{,}8) \times \sqrt{T_{max} - T_{min}} \times R_a
+    \]
+    où $R_a$ (rayonnement extraterrestre) est calculé selon la formule FAO-56 à partir de la latitude et du jour de l'année ;
+    \item une \textbf{estimation de la température du sol} (température de l'air moins 3\,°C), explicitement signalée comme une approximation à l'utilisateur, l'offre gratuite de l'API météo ne fournissant pas cette donnée ;
+    \item des \textbf{indices de risque de gel et de sécheresse} gradués de 0 à 100 (et non plus de simples seuils booléens), calibrés pour rester cohérents avec les anciens seuils historiques.
+\end{itemize}
+
+Les prévisions restent honnêtement limitées à 5 jours, conformément à la limite réelle de l'offre gratuite d'OpenWeatherMap (aucune promesse de prévisions à 7 jours n'est affichée). Le moteur de recommandation exploite désormais également les prévisions du lendemain : une pluie prévue supérieure à 10~mm déclenche par exemple une recommandation de report de l'épandage d'engrais.
+
+\section{Marché agricole (B2B)}
+
+La déclaration d'un prix s'appuie désormais sur une liste de marchés de référence (Anosibe, Antsirabe, Ambatondrazaka, Toamasina, ou saisie libre via \og Autre \fg{}), avec un filtre correspondant sur le catalogue. L'historique des prix d'un produit peut être consulté sur trois périodes (30 jours, 6 mois, 1 an) et affiché sous forme de courbe.
+
+Un mécanisme de signalement des prix abusifs, déjà en place, permet à tout agriculteur de signaler un prix suspect, qu'un expert ou un administrateur peut ensuite traiter. En complément, un module d'\og offres directes \fg{} permet à un producteur de déclarer un stock disponible (produit, quantité, prix souhaité, date de disponibilité, téléphone de contact) ; les acheteurs potentiels peuvent alors contacter directement le vendeur par appel ou SMS, indépendamment du système de messagerie interne déjà existant.
+
+\section{Mode hors-ligne}
+
+Compte tenu de la connectivité intermittente en zone rurale, chaque réponse GET réussie de l'API est mise en cache localement (\texttt{localStorage} côté web, \texttt{AsyncStorage} côté mobile). En cas d'échec réseau réel (coupure de connexion, distinct d'une erreur HTTP normale), la dernière valeur mise en cache est restituée, accompagnée d'un indicateur explicite pour l'utilisateur. Une bannière signale l'état hors-ligne et confirme la synchronisation lors du retour en ligne.
+
+Certaines actions de création (nouvelle parcelle, nouveau sujet de forum) sont mises en file d'attente lorsqu'elles échouent faute de réseau, puis rejouées automatiquement à la reconnexion, détectée côté mobile via \texttt{NetInfo} et côté web via les événements \texttt{online}/\texttt{offline} du navigateur.
+
+% =====================================================
+\chapter{Sécurité}
+\label{chap:securite}
+% =====================================================
+
+\section{Authentification et autorisation}
+
+\begin{itemize}
+    \item Les mots de passe ne sont jamais stockés en clair : ils sont hachés avec \texttt{bcryptjs} avant persistance.
+    \item Chaque session authentifiée repose sur un jeton JWT signé côté serveur, transmis dans l'en-tête \texttt{Authorization} et vérifié par un middleware avant l'exécution de tout contrôleur protégé.
+    \item Le contrôle d'accès par rôle (administrateur / agriculteur / expert) est appliqué au niveau de chaque route, jamais uniquement côté interface.
+\end{itemize}
+
+\section{Protection des données et des requêtes}
+
+\begin{itemize}
+    \item Toutes les requêtes SQL utilisent des requêtes préparées paramétrées (\texttt{mysql2}), évitant toute injection SQL classique.
+    \item Un cas particulier a nécessité une attention spécifique : le filtrage de l'historique des prix par période (\texttt{30j}/\texttt{6mois}/\texttt{1an}) ne peut pas être paramétré directement dans la clause \texttt{INTERVAL} de MySQL. La valeur fournie par le client est donc systématiquement résolue via une liste blanche fixe côté serveur avant d'être insérée dans la requête, plutôt que d'interpoler la valeur brute reçue.
+    \item Les diplômes téléversés par les experts transitent par \texttt{multer} avec contrôle du type de fichier.
+\end{itemize}
+
+% =====================================================
+\chapter{Conception de l'interface utilisateur}
+\label{chap:ui}
+% =====================================================
+
+\section{Démarche}
+
+La conception visuelle a fait l'objet d'une démarche itérative distincte du développement fonctionnel : chaque évolution significative d'interface a d'abord été proposée sous forme de maquette avant toute implémentation réelle, afin de valider la direction graphique avant d'investir du temps de développement.
+
+\section{Évolution de la direction graphique}
+
+Plusieurs pistes ont été explorées puis écartées pour le tableau de bord et les pages associées :
+\begin{itemize}
+    \item une grille de cartes façon \og glassmorphism \fg{} (effet verre dépoli, style \og bento \fg{}) --- jugée trop monotone, trop proche de l'esthétique générique associée aux interfaces générées par IA ;
+    \item une variante \og orbite \fg{} organisée autour d'un anneau central --- jugée encore trop \og circulaire \fg{} et gadget ;
+    \item un panneau typographique unique sans encadrés --- écarté ;
+    \item une mise en scène illustrée avec image de fond --- écartée.
+\end{itemize}
+
+La direction retenue pour le tableau de bord privilégie des indicateurs discrets en ligne plutôt que des barres de progression pleine largeur, des jauges circulaires réutilisables, et des chronologies verticales connectées (points reliés par un trait) plutôt que des listes empilées façon tableau.
+
+Pour le forum, une direction éditoriale de type \og magazine \fg{} a été validée : fond continu sans encadrés, titres en police serif, alternance photo à gauche puis à droite selon les articles, signature d'auteur discrète, compteurs de likes/commentaires en icônes filaires, séparateurs fins entre articles plutôt que des blocs. Cette direction, jugée suffisamment distinctive et non générique, sert désormais de référence pour les pages restant à retravailler.
+
+L'application distingue un thème sombre par défaut et un thème clair, avec une attention portée à la lisibilité des surfaces translucides sur les deux modes.
+
+% =====================================================
+\chapter{Tests et vérification}
+\label{chap:tests}
+% =====================================================
+
+À défaut d'une suite de tests automatisés exhaustive (tests unitaires/end-to-end), la qualité du code a été garantie à chaque étape par une combinaison systématique de vérifications :
+
+\begin{itemize}
+    \item \textbf{Back-end} : vérification syntaxique (\texttt{node --check}) de chaque fichier modifié, sans nécessiter de connexion à la base de données.
+    \item \textbf{Web} : validation de la cohérence des fichiers de traduction (fr/en/mg), puis compilation de production (\texttt{react-scripts build}) systématiquement vérifiée exempte d'erreurs.
+    \item \textbf{Mobile} : vérification de typage strict (\texttt{tsc --noEmit}) après chaque évolution.
+    \item \textbf{Validation manuelle en navigateur} : les évolutions d'interface majeures (refonte du tableau de bord) ont été testées manuellement en conditions réelles (thème clair/sombre, résolution bureau/mobile), avec des comptes de test dédiés par rôle.
+\end{itemize}
+
+Cette discipline de vérification continue --- plutôt qu'une phase de test isolée en fin de projet --- a permis de détecter et corriger immédiatement plusieurs anomalies d'intégration (par exemple des conflits de propriétés CSS entre classes utilitaires générant un résultat visuel imprévisible selon l'ordre de génération du CSS).
+
+% =====================================================
+\chapter{Difficultés rencontrées et solutions}
+\label{chap:difficultes}
+% =====================================================
+
+\begin{description}
+    \item[Limite des données météorologiques gratuites] L'offre gratuite d'OpenWeatherMap ne fournit ni température du sol, ni prévisions au-delà de 5 jours. Plutôt que de simuler des données absentes ou d'afficher une fausse promesse de \og prévisions à 7 jours \fg{}, le choix a été fait d'exposer des estimations clairement signalées comme telles (approximation de la température du sol, formule agronomique standard pour l'évapotranspiration) et de respecter strictement la limite réelle de l'API.
+    \item[Compatibilité ascendante des données existantes] L'introduction d'une liste de marchés de référence ne devait pas invalider les données déjà saisies en texte libre par les utilisateurs existants ; la contrainte a donc été appliquée au niveau applicatif plutôt que par une contrainte \texttt{ENUM} stricte en base de données.
+    \item[Paramétrage SQL des intervalles de temps] MySQL ne permet pas de lier un paramètre directement dans une clause \texttt{INTERVAL}. La période demandée par le client est donc résolue côté serveur via une liste blanche fixe avant construction de la requête, pour conserver une requête paramétrée sûre malgré cette limitation du moteur SQL.
+    \item[Ordonnancement des routes Express] Certaines routes plus spécifiques (par exemple la liste des offres de vente) devaient impérativement être déclarées avant les routes génériques de type \texttt{/:id}, sous peine d'être interceptées par erreur par la route générique.
+    \item[Rejeu idempotent des migrations] Chaque script de migration devait pouvoir être exécuté sans risque même si une partie du schéma cible existait déjà (environnement de développement partagé, exécutions manuelles répétées) ; d'où l'adoption systématique de vérifications d'existence avant toute altération de schéma.
+    \item[Éviter l'esthétique \og générée par IA \fg{}] Les premières pistes graphiques (effets de verre, formes arrondies systématiques, dégradés flous) ont été jugées trop génériques et reconnaissables comme \og produites par une IA \fg{}. Un effort de différenciation graphique par page (traitement éditorial du forum notamment) a donc été mené plutôt que la réutilisation d'un système visuel unique et interchangeable.
+\end{description}
+
+% =====================================================
+\chapter{Perspectives d'évolution}
+\label{chap:perspectives}
+% =====================================================
+
+Le socle fonctionnel couvrant l'intégralité du cahier des charges initial étant en place, plusieurs axes d'amélioration restent envisageables :
+
+\begin{itemize}
+    \item extension de la base de connaissances de diagnostic à davantage de cultures et de maladies, éventuellement enrichie par apprentissage automatique à partir des validations expertes accumulées ;
+    \item mise en place d'un véritable \emph{service worker} pour le web afin d'offrir un mode hors-ligne plus complet (actuellement un choix a été fait d'éviter cette complexité pour un projet de cette envergure, au profit d'un cache applicatif simple) ;
+    \item supervision technique de l'API météo côté administration (quotas, disponibilité), volontairement écartée du périmètre initial comme relevant davantage de l'infrastructure que du besoin métier ;
+    \item généralisation de la direction graphique \og magazine \fg{} validée pour le forum à l'ensemble des pages restant dans le style visuel initial ;
+    \item mise en place de tests automatisés (unitaires côté API, end-to-end côté web et mobile) pour sécuriser les évolutions futures ;
+    \item passage à une offre météorologique payante permettant des prévisions à plus long terme, si le budget du projet le permet.
+\end{itemize}
+
+% =====================================================
+\chapter{Conclusion}
+% =====================================================
+
+Le projet AgriSmart répond à un besoin réel et documenté : offrir aux producteurs agricoles malgaches un outil numérique centralisant conseils, météo, gestion d'exploitation et accès au marché, tout en restant utilisable dans un contexte de connectivité limitée. La démarche adoptée --- un découpage en modules fonctionnels traités de bout en bout, une API REST unique partagée par le web et le mobile, une vérification continue à chaque étape plutôt qu'en fin de parcours, et une attention portée à l'honnêteté des données présentées (estimations explicitement signalées, limites de l'API météo assumées plutôt que masquées) --- a permis de mener à terme l'intégralité des sept modules du cahier des charges ainsi que le module transversal de fonctionnement hors-ligne.
+
+Au-delà de l'aspect technique, ce projet illustre la possibilité de concevoir des outils numériques adaptés aux contraintes concrètes du monde rural malgache, plutôt que la simple transposition de solutions pensées pour un contexte de connectivité permanente.
+
+\end{document}

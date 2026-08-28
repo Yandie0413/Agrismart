@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+.idea/
+.claude/settings.local.json
+
+# ad-hoc debug/smoke-test scratch (tokens, dumps, screenshots)
+.tmp-test/
+
+# LaTeX build artifacts
+rapport/*.aux
+rapport/*.log
+rapport/*.out
+rapport/*.toc
+rapport/*.lof
+rapport/*.lot
+rapport/*.fls
+rapport/*.fdb_latexmk
+rapport/*.synctex.gz

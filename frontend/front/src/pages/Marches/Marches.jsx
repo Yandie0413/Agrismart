@@ -8,7 +8,7 @@ import {
 } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import {
-    FiPlus, FiTrendingUp, FiTrendingDown, FiMapPin, FiX,
+    FiPlus, FiTrendingUp, FiMapPin, FiX,
     FiPackage, FiTag, FiMessageCircle, FiShoppingBag, FiBox, FiFlag,
     FiPhone, FiCheck, FiFilter,
 } from 'react-icons/fi';
@@ -52,6 +52,18 @@ const PERIODES = [
     { valeur: '1an', labelKey: 'period1y' },
 ];
 const UNITES_OFFRE = ['kg', 'tonnes'];
+
+// Tendance approximative : compare les 2 dernieres offres publiees (marche_id croissant = plus recent)
+const tendanceDetail = (marches) => {
+    if (!marches || marches.length < 2 || marches[0]?.marche_id === null) return null;
+    const triees = [...marches].sort((a, b) => a.marche_id - b.marche_id);
+    const derniere = parseFloat(triees[triees.length - 1].prix);
+    const precedente = parseFloat(triees[triees.length - 2].prix);
+    if (derniere === precedente || !precedente) return null;
+    const pct = Math.round(((derniere - precedente) / precedente) * 100);
+    return { direction: derniere > precedente ? 'hausse' : 'baisse', pct: Math.abs(pct) };
+};
+const tendance = (marches) => tendanceDetail(marches)?.direction || null;
 
 const Marches = () => {
     const { t } = useTranslation();
@@ -208,18 +220,6 @@ const Marches = () => {
         const total = marches.reduce((acc, m) => acc + parseFloat(m.prix || 0), 0);
         return (total / marches.length).toFixed(2);
     };
-
-    // Tendance approximative : compare les 2 dernieres offres publiees (marche_id croissant = plus recent)
-    const tendanceDetail = (marches) => {
-        if (!marches || marches.length < 2 || marches[0]?.marche_id === null) return null;
-        const triees = [...marches].sort((a, b) => a.marche_id - b.marche_id);
-        const derniere = parseFloat(triees[triees.length - 1].prix);
-        const precedente = parseFloat(triees[triees.length - 2].prix);
-        if (derniere === precedente || !precedente) return null;
-        const pct = Math.round(((derniere - precedente) / precedente) * 100);
-        return { direction: derniere > precedente ? 'hausse' : 'baisse', pct: Math.abs(pct) };
-    };
-    const tendance = (marches) => tendanceDetail(marches)?.direction || null;
 
     // Palette "epicerie" : chaque carte produit recoit un fond pastel individuel,
     // stable par produit (comme les cartes carotte/poivron/brocoli/radis de la maquette grocery),

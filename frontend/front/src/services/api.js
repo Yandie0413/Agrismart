@@ -2,7 +2,7 @@ import axios from 'axios';
 import { sauvegarderCache, lireCache } from '../utils/cacheHorsLigne';
 
 const API = axios.create({
-    baseURL: 'http://localhost:3000/api',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
 });
 
 // Ajouter le token automatiquement a chaque requete

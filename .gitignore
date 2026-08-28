@@ -6,6 +6,7 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # ad-hoc debug/smoke-test scratch (tokens, dumps, screenshots)
 .tmp-test/

@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '@/constants/api';
 import { lireCache, sauvegarderCache } from '@/utils/cacheHorsLigne';
+import { fetchAvecResilience } from '@/utils/reseau';
 
 const NGROK_HEADERS = {
   'ngrok-skip-browser-warning': 'true',
@@ -25,7 +26,7 @@ async function handleResponse(res: Response) {
 export async function apiGet(endpoint: string, token: string | null) {
   let res: Response;
   try {
-    res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    res = await fetchAvecResilience(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
         ...NGROK_HEADERS,
@@ -43,7 +44,7 @@ export async function apiGet(endpoint: string, token: string | null) {
 }
 
 export async function apiPut(endpoint: string, token: string | null, body: any = {}) {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await fetchAvecResilience(`${API_BASE_URL}${endpoint}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ export async function apiPut(endpoint: string, token: string | null, body: any =
 }
 
 export async function apiPost(endpoint: string, token: string | null, body: any) {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await fetchAvecResilience(`${API_BASE_URL}${endpoint}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ export async function apiPost(endpoint: string, token: string | null, body: any)
   return handleResponse(res);
 }
 export async function apiDelete(endpoint: string, token: string | null) {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await fetchAvecResilience(`${API_BASE_URL}${endpoint}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -80,14 +81,20 @@ export async function apiDelete(endpoint: string, token: string | null) {
 }
 
 export async function apiUpload(endpoint: string, token: string | null, formData: FormData) {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: 'POST',
-    headers: {
-      ...NGROK_HEADERS,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      // Pas de Content-Type ici : fetch le genere automatiquement avec le bon boundary pour FormData
+  // Timeout plus long (upload de photo/document) et sans retry automatique : renvoyer deux fois
+  // le meme fichier sur une connexion deja lente coute cher en data pour rien.
+  const res = await fetchAvecResilience(
+    `${API_BASE_URL}${endpoint}`,
+    {
+      method: 'POST',
+      headers: {
+        ...NGROK_HEADERS,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        // Pas de Content-Type ici : fetch le genere automatiquement avec le bon boundary pour FormData
+      },
+      body: formData,
     },
-    body: formData,
-  });
+    { timeoutMs: 45000, tentatives: 1 }
+  );
   return handleResponse(res);
 }

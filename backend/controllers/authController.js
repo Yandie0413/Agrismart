@@ -3,9 +3,8 @@ const Utilisateur = require('../models/utilisateur');
 const Agriculteur = require('../models/agriculteur');
 const Expert = require('../models/expert');
 const { success, error } = require('../utils/response');
-const { envoyerCodeOTP } = require('../utils/email');
+const { envoyerCodeOTP, envoyerLienReset } = require('../utils/email');
 const db = require('../config/db');
-const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 
 const authController = {
@@ -170,25 +169,10 @@ const authController = {
                 [token, expiration, utilisateur.utilisateur_id]
             );
 
-            const lienReset = `http://localhost:3001/reset-password?token=${token}`;
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-            });
-
-            await transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: email,
-                subject: 'Reinitialisation mot de passe - Agri Platform',
-                html: `
-                    <h2>Reinitialisation de votre mot de passe</h2>
-                    <p>Cliquez sur le lien ci-dessous :</p>
-                    <a href="${lienReset}" style="background:#2e7d32;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">
-                        Reinitialiser mon mot de passe
-                    </a>
-                    <p>Ce lien expire dans <strong>1 heure</strong>.</p>
-                `
-            });
+            // FRONTEND_URL doit pointer vers le site deploye (Vercel) en production - localhost
+            // en dur ici cassait le lien pour tout utilisateur reel, pas seulement le SMTP.
+            const lienReset = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/reset-password?token=${token}`;
+            await envoyerLienReset(email, lienReset);
 
             return success(res, null, 'Email de reinitialisation envoye');
         } catch (err) {

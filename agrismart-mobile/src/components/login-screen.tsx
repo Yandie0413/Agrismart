@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -22,22 +21,11 @@ import GlassCard from '@/components/ui/GlassCard';
 import { BoutonPrincipal, ChampIcone } from '@/components/ui/auth-fields';
 
 type Step = 'login' | 'otp' | 'register';
-type Colors = ReturnType<typeof useTheme>['colors'];
 
 const ROLES: { value: 'agriculteur' | 'expert'; label: string }[] = [
   { value: 'agriculteur', label: 'Agriculteur' },
   { value: 'expert', label: 'Expert agricole' },
 ];
-
-function Diviseur({ colors }: { colors: Colors }) {
-  return (
-    <View style={styles.diviseurRow}>
-      <View style={[styles.diviseurLigne, { backgroundColor: hexToRgba('#FFFFFF', 0.14) }]} />
-      <Text style={[styles.diviseurTexte, { color: colors.textMuted }]}>ou</Text>
-      <View style={[styles.diviseurLigne, { backgroundColor: hexToRgba('#FFFFFF', 0.14) }]} />
-    </View>
-  );
-}
 
 export default function LoginScreen({ onDecouvrir }: { onDecouvrir?: () => void }) {
   const { login, verifierOtp, register } = useAuth();
@@ -119,13 +107,6 @@ export default function LoginScreen({ onDecouvrir }: { onDecouvrir?: () => void 
   function allerA(nouveauStep: Step) {
     resetMessages();
     setStep(nouveauStep);
-  }
-
-  function handleGoogle() {
-    Alert.alert(
-      'Bientot disponible',
-      "La connexion Google necessite la configuration d'un projet OAuth (Google Cloud Console). Utilise ton email en attendant."
-    );
   }
 
   return (
@@ -214,19 +195,6 @@ export default function LoginScreen({ onDecouvrir }: { onDecouvrir?: () => void 
                     </>
                   )}
                 </BoutonPrincipal>
-
-                <Diviseur colors={colors} />
-
-                <TouchableOpacity
-                  style={[
-                    styles.boutonGoogle,
-                    { borderColor: hexToRgba('#FFFFFF', 0.16), backgroundColor: hexToRgba('#FFFFFF', 0.05) },
-                  ]}
-                  activeOpacity={0.85}
-                  onPress={handleGoogle}>
-                  <Ionicons name="logo-google" size={18} color={colors.white} />
-                  <Text style={[styles.boutonGoogleTexte, { color: colors.white }]}>Continuer avec Google</Text>
-                </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => allerA('register')}>
                   <Text style={[styles.lienSecondaire, styles.lienCentre, { color: colors.mint300 }]}>
@@ -381,20 +349,6 @@ const styles = StyleSheet.create({
   checkbox: { width: 18, height: 18, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   souvenirTexte: { fontSize: 12.5, fontWeight: '500' },
   boutonTexte: { fontSize: 15.5, fontWeight: '700' },
-  diviseurRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginVertical: Spacing.md },
-  diviseurLigne: { flex: 1, height: 1 },
-  diviseurTexte: { fontSize: 12, fontWeight: '600' },
-  boutonGoogle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    marginBottom: Spacing.md,
-  },
-  boutonGoogleTexte: { fontSize: 14.5, fontWeight: '600' },
   roleRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
   roleChip: { flex: 1, borderWidth: 1, borderRadius: Radius.full, paddingVertical: 10, alignItems: 'center' },
   roleChipTexte: { fontSize: 13, fontWeight: '600' },

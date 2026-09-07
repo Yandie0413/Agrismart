@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '@/constants/api';
+import { fetchAvecResilience } from '@/utils/reseau';
 
 async function handleResponse(res: Response) {
   const json = await res.json();
@@ -8,24 +9,10 @@ async function handleResponse(res: Response) {
   return json.data;
 }
 
-// fetch() ne timeout jamais par defaut sur React Native : sur un reseau mobile
-// instable, une requete peut rester en attente indefiniment sans jamais
-// resoudre ni rejeter. On force un delai raisonnable et on traduit les
-// erreurs reseau brutes ("Network request failed", AbortError) en message
-// comprehensible plutot que de laisser echouer silencieusement.
-async function fetchAvecTimeout(url: string, options: RequestInit, timeoutMs = 15000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } catch (e: any) {
-    if (e.name === 'AbortError') {
-      throw new Error('Le serveur met trop de temps a repondre. Verifie ta connexion et reessaie.');
-    }
-    throw new Error('Impossible de contacter le serveur. Verifie ta connexion internet.');
-  } finally {
-    clearTimeout(timer);
-  }
+// 20s par tentative + 1 retry automatique sur echec reseau (voir utils/reseau.ts) : une
+// connexion mobile faible a le temps de rattraper un pic de lenteur avant qu'on abandonne.
+function fetchAvecTimeout(url: string, options: RequestInit) {
+  return fetchAvecResilience(url, options, { timeoutMs: 20000, tentatives: 2 });
 }
 
 export async function loginRequest(email: string, mot_de_passe: string) {

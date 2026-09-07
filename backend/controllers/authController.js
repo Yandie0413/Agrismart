@@ -88,10 +88,12 @@ const authController = {
             if (!utilisateur) return error(res, 'Utilisateur non trouve', 404);
             if (utilisateur.deux_facteurs_code !== code) return error(res, 'Code incorrect', 401);
             if (new Date() > new Date(utilisateur.deux_facteurs_expiration)) return error(res, 'Code expire', 401);
-            await db.execute(
-                `UPDATE utilisateurs SET deux_facteurs_code = NULL, deux_facteurs_expiration = NULL WHERE utilisateur_id = ?`,
-                [utilisateur.utilisateur_id]
-            );
+            // Le code n'est PAS efface ici : sur un reseau faible, la reponse peut se perdre
+            // apres que le serveur ait deja valide le code, forcant l'app a reessayer -- si on
+            // avait deja efface le code au premier passage, ce reessai (meme code, correct)
+            // echouerait a tort avec "Code incorrect". Il reste donc utilisable jusqu'a sa
+            // propre expiration (10 min, ligne ~58) ; une nouvelle tentative de connexion
+            // regenere de toute facon un nouveau code qui l'ecrase.
             const token = jwt.sign(
                 { id: utilisateur.utilisateur_id, role: utilisateur.utilisateur_role },
                 process.env.JWT_SECRET,

@@ -11,6 +11,22 @@ function estErreurReseau(e: any) {
   return e?.name === 'AbortError' || e?.message === 'Network request failed';
 }
 
+// Sur certains appareils Android, AbortController n'annule pas vraiment la requete
+// native sous-jacente : fetch() ne rejette jamais et reste bloque pour de vrai, meme
+// apres controller.abort(). On fait donc courir fetch() contre ce delai independant,
+// qui rejette de son cote quoi qu'il arrive -- la fonction abandonne toujours au bout
+// de timeoutMs, meme si l'annulation native a echoue (la requete fantome continue en
+// arriere-plan sans bloquer l'app, elle est juste ignoree).
+function delaiForce(ms: number): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      const e: any = new Error('Timeout force cote client');
+      e.name = 'AbortError';
+      reject(e);
+    }, ms);
+  });
+}
+
 export async function fetchAvecResilience(
   url: string,
   options: RequestInit,
@@ -22,7 +38,10 @@ export async function fetchAvecResilience(
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      return await fetch(url, { ...options, signal: controller.signal });
+      return await Promise.race([
+        fetch(url, { ...options, signal: controller.signal }),
+        delaiForce(timeoutMs),
+      ]);
     } catch (e: any) {
       derniereErreur = e;
       if (!estErreurReseau(e) || essai === tentatives) break;

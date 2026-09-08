@@ -21,31 +21,34 @@ function RootNavigator() {
     );
   }
 
+  // NotificationProvider/NetworkProvider restent montes en permanence (ils sont des
+  // no-op sans token) et un seul <Stack> existe : seuls les ecrans disponibles a
+  // l'interieur changent via Stack.Protected. Avant, l'auth echangeait deux arbres
+  // <Stack> entierement differents selon `utilisateur`, ce qui remontait tout et
+  // pouvait laisser Expo Router bloque sur l'ancien ecran (ou faire "rebondir" vers
+  // l'onboarding) au lieu de re-render proprement au bon endroit.
   return (
-    <>
-      {utilisateur ? (
-        <NotificationProvider>
-          <NetworkProvider>
-            <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-              <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-              <Stack.Screen name="meteo" />
-              <Stack.Screen name="conseils" />
-              <Stack.Screen name="marches" />
-              <Stack.Screen name="localisation" />
-              <Stack.Screen name="statistiques" />
-              <Stack.Screen name="exploitation/[id]" />
-              <Stack.Screen name="forum" />
-            </Stack>
-            <OfflineBanner />
-          </NetworkProvider>
-        </NotificationProvider>
-      ) : (
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
+    <NotificationProvider>
+      <NetworkProvider>
+        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+          <Stack.Protected guard={!!utilisateur}>
+            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+            <Stack.Screen name="meteo" />
+            <Stack.Screen name="conseils" />
+            <Stack.Screen name="marches" />
+            <Stack.Screen name="localisation" />
+            <Stack.Screen name="statistiques" />
+            <Stack.Screen name="exploitation/[id]" />
+            <Stack.Screen name="forum" />
+          </Stack.Protected>
+          <Stack.Protected guard={!utilisateur}>
+            <Stack.Screen name="(auth)" />
+          </Stack.Protected>
         </Stack>
-      )}
+        <OfflineBanner />
+      </NetworkProvider>
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
-    </>
+    </NotificationProvider>
   );
 }
 

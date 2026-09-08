@@ -56,16 +56,11 @@ export default function LoginScreen({ onDecouvrir }: { onDecouvrir?: () => void 
     setLoading(true);
     try {
       const result = await login(email, motDePasse, seSouvenir);
-      if (result.deuxFacteurs) {
-        setStep('otp');
-      } else {
-        // Navigation explicite : ne pas se fier uniquement au re-render reactif de
-        // _layout.tsx (qui echange tout l'arbre de Stack selon l'etat auth) pour
-        // basculer vers le tableau de bord -- sur certains appareils/versions
-        // d'Expo Router, ce changement d'etat seul ne declenche pas toujours la
-        // transition visuelle et l'ecran de connexion reste affiche.
-        router.replace('/');
-      }
+      // Pas de navigation manuelle ici : _layout.tsx utilise desormais Stack.Protected,
+      // qui redirige lui-meme automatiquement et de facon fiable des que `utilisateur`
+      // change (voir _layout.tsx). Naviguer nous-memes en plus risquait de partir avant
+      // que le changement de garde soit effectif, provoquant un retour a l'onboarding.
+      if (result.deuxFacteurs) setStep('otp');
     } catch (e: any) {
       setErreur(e.message || 'Erreur de connexion');
     } finally {
@@ -78,7 +73,6 @@ export default function LoginScreen({ onDecouvrir }: { onDecouvrir?: () => void 
     setLoading(true);
     try {
       await verifierOtp(email, code, seSouvenir);
-      router.replace('/');
     } catch (e: any) {
       setErreur(e.message || 'Code invalide');
     } finally {

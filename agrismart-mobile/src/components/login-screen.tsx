@@ -56,7 +56,16 @@ export default function LoginScreen({ onDecouvrir }: { onDecouvrir?: () => void 
     setLoading(true);
     try {
       const result = await login(email, motDePasse, seSouvenir);
-      if (result.deuxFacteurs) setStep('otp');
+      if (result.deuxFacteurs) {
+        setStep('otp');
+      } else {
+        // Navigation explicite : ne pas se fier uniquement au re-render reactif de
+        // _layout.tsx (qui echange tout l'arbre de Stack selon l'etat auth) pour
+        // basculer vers le tableau de bord -- sur certains appareils/versions
+        // d'Expo Router, ce changement d'etat seul ne declenche pas toujours la
+        // transition visuelle et l'ecran de connexion reste affiche.
+        router.replace('/');
+      }
     } catch (e: any) {
       setErreur(e.message || 'Erreur de connexion');
     } finally {
@@ -69,6 +78,7 @@ export default function LoginScreen({ onDecouvrir }: { onDecouvrir?: () => void 
     setLoading(true);
     try {
       await verifierOtp(email, code, seSouvenir);
+      router.replace('/');
     } catch (e: any) {
       setErreur(e.message || 'Code invalide');
     } finally {

@@ -7,6 +7,7 @@ import OnboardingScreen from '@/components/onboarding-screen';
 // deplace ici depuis RootNavigator pour permettre au login de naviguer
 // vers un ecran "mot de passe oublie" dedie via expo-router.
 export default function AuthIndex() {
+  console.log('[DIAG] (auth)/index.tsx monte/remonte');
   const [vueNonConnecte, setVueNonConnecte] = useState<'onboarding' | 'login'>('onboarding');
 
   function terminerOnboarding() {

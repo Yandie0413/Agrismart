@@ -13,6 +13,8 @@ function RootNavigator() {
   const { utilisateur, loading } = useAuth();
   const { colors, mode } = useTheme();
 
+  console.log('[DIAG] RootNavigator render: loading=', loading, 'utilisateur=', utilisateur?.nom ?? null);
+
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.forest950 }]}>

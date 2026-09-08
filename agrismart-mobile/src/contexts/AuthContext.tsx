@@ -39,10 +39,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('[DIAG] AuthProvider monte/remonte');
     (async () => {
       try {
         const storedToken = await AsyncStorage.getItem('token');
         const storedUser = await AsyncStorage.getItem('utilisateur');
+        console.log('[DIAG] bootstrap AsyncStorage: token=', !!storedToken, 'user=', !!storedUser);
         if (storedToken && storedUser) {
           setToken(storedToken);
           setUtilisateur(JSON.parse(storedUser));
@@ -57,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function login(email: string, motDePasse: string, seSouvenir = true) {
     const data = await loginRequest(email, motDePasse);
+    console.log('[DIAG] login reponse recue, deux_facteurs=', data.deux_facteurs);
     if (data.deux_facteurs) {
       return { deuxFacteurs: true, email: data.email };
     }
@@ -64,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.setItem('token', data.token);
       await AsyncStorage.setItem('utilisateur', JSON.stringify(data.utilisateur));
     }
+    console.log('[DIAG] login: setUtilisateur ->', data.utilisateur?.nom);
     setToken(data.token);
     setUtilisateur(data.utilisateur);
     return { deuxFacteurs: false };
@@ -75,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.setItem('token', data.token);
       await AsyncStorage.setItem('utilisateur', JSON.stringify(data.utilisateur));
     }
+    console.log('[DIAG] verifierOtp: setUtilisateur ->', data.utilisateur?.nom);
     setToken(data.token);
     setUtilisateur(data.utilisateur);
   }
@@ -90,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
+    console.log('[DIAG] logout() appele !', new Error().stack);
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('utilisateur');
     setToken(null);

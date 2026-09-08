@@ -193,9 +193,14 @@ const authController = {
             const utilisateur = rows[0];
             if (new Date() > new Date(utilisateur.reset_token_expiration)) return error(res, 'Token expire', 400);
 
+            // Le token n'est pas efface ici, meme motif que verifierOTP : si la reponse se
+            // perd en route sur un reseau faible apres que le mot de passe ait deja ete
+            // change, un reessai avec le meme token doit reussir (re-hacher/reappliquer le
+            // meme nouveau mot de passe est sans consequence) plutot que d'echouer a tort
+            // avec "Token invalide". Il reste utilisable jusqu'a sa propre expiration (1h).
             const motDePasseHash = await bcrypt.hash(nouveau_mot_de_passe, 10);
             await db.execute(
-                `UPDATE utilisateurs SET utilisateur_mot_de_passe = ?, reset_token = NULL, reset_token_expiration = NULL WHERE utilisateur_id = ?`,
+                `UPDATE utilisateurs SET utilisateur_mot_de_passe = ? WHERE utilisateur_id = ?`,
                 [motDePasseHash, utilisateur.utilisateur_id]
             );
 
